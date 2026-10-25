@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Antigravity Operations Engine | B2B Document Reconciliation</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="cosmic-background.js"></script>
+  <style>
+    [v-cloak] { display: none; }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+  </style>
+</head>
+<body class="h-full flex flex-col font-sans antialiased bg-slate-950/75">
+
+  <!-- Top Navigation -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-30 px-6 py-4">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-blue-500 to-emerald-400 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+          <i data-lucide="cpu" class="w-6 h-6 text-white"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="font-bold text-lg text-white tracking-tight">Antigravity Operations</span>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">B2B Core v1.0</span>
+          </div>
+          <p class="text-xs text-slate-400">Autonomous Ingestion, Math Reconciliation & Human-in-the-Loop Pipeline</p>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-3">
+        <button onclick="generateDemoData()" class="flex items-center space-x-2 px-3.5 py-2 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 rounded-lg text-xs font-semibold transition shadow-sm">
+          <i data-lucide="sparkles" class="w-4 h-4"></i>
+          <span>Load Live Sales Demo</span>
+        </button>
+        <a href="/api/export/csv" class="flex items-center space-x-2 px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-semibold transition">
+          <i data-lucide="download" class="w-4 h-4"></i>
+          <span>Export Reconciled CSV</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-6 py-8 space-y-8">
+
+    <!-- KPI Summary Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4" id="kpi-cards">
+      <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl flex items-center justify-between">
+        <div>
+          <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Pending Review</p>
+          <h3 class="text-2xl font-bold text-amber-400 mt-1" id="kpi-pending">0</h3>
+          <p class="text-xs text-slate-500 mt-1">Requires human checkpoint</p>
+        </div>
+        <div class="w-11 h-11 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+          <i data-lucide="clock" class="w-5 h-5 text-amber-400"></i>
+        </div>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl flex items-center justify-between">
+        <div>
+          <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Discrepancies Flagged</p>
+          <h3 class="text-2xl font-bold text-rose-400 mt-1" id="kpi-flagged">0</h3>
+          <p class="text-xs text-slate-500 mt-1">Math / Duplicate errors caught</p>
+        </div>
+        <div class="w-11 h-11 rounded-lg bg-rose-500/10 border border-rose-500/20 flex items-center justify-center">
+          <i data-lucide="alert-triangle" class="w-5 h-5 text-rose-400"></i>
+        </div>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl flex items-center justify-between">
+        <div>
+          <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Volume Processed</p>
+          <h3 class="text-2xl font-bold text-emerald-400 mt-1" id="kpi-volume">$0.00</h3>
+          <p class="text-xs text-slate-500 mt-1" id="kpi-total-docs">0 documents</p>
+        </div>
+        <div class="w-11 h-11 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+          <i data-lucide="dollar-sign" class="w-5 h-5 text-emerald-400"></i>
+        </div>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl flex items-center justify-between">
+        <div>
+          <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Labor Time Saved</p>
+          <h3 class="text-2xl font-bold text-blue-400 mt-1" id="kpi-saved">0.0 hrs</h3>
+          <p class="text-xs text-slate-500 mt-1">~15 min manual entry / doc</p>
+        </div>
+        <div class="w-11 h-11 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+          <i data-lucide="zap" class="w-5 h-5 text-blue-400"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Drag & Drop Upload Zone -->
+    <div 
+      id="drop-zone"
+      class="border-2 border-dashed border-slate-700 hover:border-indigo-500 bg-slate-900/50 hover:bg-slate-900 rounded-2xl p-8 text-center transition cursor-pointer relative"
+      onclick="document.getElementById('file-input').click()"
+      ondragover="event.preventDefault(); this.classList.add('border-indigo-400', 'bg-slate-800/40')"
+      ondragleave="this.classList.remove('border-indigo-400', 'bg-slate-800/40')"
+      ondrop="handleDrop(event)"
+    >
+      <input type="file" id="file-input" class="hidden" multiple accept=".pdf,.csv,.txt" onchange="handleFileSelect(event)">
+      <div class="flex flex-col items-center justify-center space-y-3">
+        <div class="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+          <i data-lucide="upload-cloud" class="w-7 h-7"></i>
+        </div>
+        <div class="space-y-1">
+          <h4 class="text-base font-semibold text-white">Drop operational documents here, or <span class="text-indigo-400 underline">browse files</span></h4>
+          <p class="text-xs text-slate-400">Supports PDF invoices, bills of lading, CSV dispatch feeds, and raw work orders</p>
+        </div>
+        <div class="flex items-center space-x-4 text-xs text-slate-500 pt-1">
+          <span class="flex items-center"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-400 mr-1"></i> Line-item extraction</span>
+          <span class="flex items-center"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-400 mr-1"></i> Deterministic math check</span>
+          <span class="flex items-center"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-400 mr-1"></i> Duplicate protection</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Queue & Document List Section -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+      <!-- Filters and Search Header -->
+      <div class="px-6 py-4 border-b border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex items-center space-x-2">
+          <button onclick="setFilter('ALL')" id="filter-ALL" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white transition">All Docs</button>
+          <button onclick="setFilter('PENDING_REVIEW')" id="filter-PENDING_REVIEW" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-400 hover:text-white transition">Pending Review</button>
+          <button onclick="setFilter('FLAGGED')" id="filter-FLAGGED" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-400 hover:text-white transition">Flagged</button>
+          <button onclick="setFilter('APPROVED')" id="filter-APPROVED" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-400 hover:text-white transition">Approved</button>
+          <button onclick="setFilter('EXPORTED')" id="filter-EXPORTED" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-400 hover:text-white transition">Exported</button>
+        </div>
+
+        <div class="relative w-full md:w-72">
+          <i data-lucide="search" class="w-4 h-4 text-slate-500 absolute left-3 top-2.5"></i>
+          <input 
+            type="text" 
+            id="search-input" 
+            placeholder="Search vendor, doc #..." 
+            class="w-full bg-slate-950 border border-slate-800 rounded-lg pl-9 pr-4 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
+            oninput="renderDocuments()"
+          >
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="border-b border-slate-800 bg-slate-950/50 text-slate-400 font-semibold uppercase tracking-wider">
+              <th class="py-3.5 px-6">Document & Vendor</th>
+              <th class="py-3.5 px-4">Doc # / Date</th>
+              <th class="py-3.5 px-4">Line Items</th>
+              <th class="py-3.5 px-4">Grand Total</th>
+              <th class="py-3.5 px-4">Validation Status</th>
+              <th class="py-3.5 px-6 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="document-table-body" class="divide-y divide-slate-800/60">
+            <!-- Rendered by JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Empty State -->
+      <div id="empty-state" class="py-16 text-center space-y-3 hidden">
+        <i data-lucide="inbox" class="w-10 h-10 text-slate-600 mx-auto"></i>
+        <h5 class="text-sm font-semibold text-slate-300">No documents found</h5>
+        <p class="text-xs text-slate-500">Upload a file or click "Load Live Sales Demo" above to populate records.</p>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Side-by-Side Review & Discrepancy Modal -->
+  <div id="review-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-5xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950">
+        <div class="flex items-center space-x-3">
+          <div class="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+            <i data-lucide="file-check" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-white flex items-center space-x-2">
+              <span id="modal-doc-title">Document Inspection</span>
+              <span id="modal-status-badge"></span>
+            </h3>
+            <p class="text-xs text-slate-400" id="modal-filename">filename.pdf</p>
+          </div>
+        </div>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body (Split view) -->
+      <div class="flex-1 overflow-y-auto p-6 grid grid-cols-1 md:grid-cols-2 gap-6 custom-scrollbar">
+        
+        <!-- Left: Raw Extracted Document Preview -->
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center space-x-1.5">
+              <i data-lucide="file-text" class="w-4 h-4 text-indigo-400"></i>
+              <span>Raw Document Stream</span>
+            </h4>
+            <span class="text-xs text-slate-500" id="modal-confidence">Confidence: 95%</span>
+          </div>
+          <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 h-96 overflow-y-auto font-mono text-xs text-slate-300 whitespace-pre-wrap custom-scrollbar" id="modal-raw-text">
+            Loading document content...
+          </div>
+        </div>
+
+        <!-- Right: Structured Data & Reconciliation Form -->
+        <div class="space-y-4">
+          <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center space-x-1.5">
+            <i data-lucide="check-square" class="w-4 h-4 text-emerald-400"></i>
+            <span>Reconciliation & Line Items</span>
+          </h4>
+
+          <!-- Discrepancy Warnings Box -->
+          <div id="modal-flags-container" class="space-y-2"></div>
+
+          <!-- Metadata Form -->
+          <div class="grid grid-cols-2 gap-3 bg-slate-950/60 p-4 border border-slate-800 rounded-xl">
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-400 uppercase">Vendor Name</label>
+              <input type="text" id="edit-vendor" class="mt-1 w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500">
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-400 uppercase">Document #</label>
+              <input type="text" id="edit-docnum" class="mt-1 w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500">
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-400 uppercase">Document Date</label>
+              <input type="text" id="edit-date" class="mt-1 w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500">
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-400 uppercase">Grand Total ($)</label>
+              <input type="number" step="0.01" id="edit-total" class="mt-1 w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-bold text-emerald-400 focus:outline-none focus:border-indigo-500">
+            </div>
+          </div>
+
+          <!-- Line Items Table -->
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-semibold text-slate-300">Parsed Line Items</span>
+              <button onclick="addLineItemRow()" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold flex items-center space-x-1">
+                <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                <span>Add Item</span>
+              </button>
+            </div>
+            <div class="border border-slate-800 rounded-xl overflow-hidden bg-slate-950">
+              <table class="w-full text-left text-xs">
+                <thead>
+                  <tr class="bg-slate-900 text-slate-400 font-semibold border-b border-slate-800">
+                    <th class="py-2 px-3">Description</th>
+                    <th class="py-2 px-2 w-16 text-right">Qty</th>
+                    <th class="py-2 px-2 w-20 text-right">Unit ($)</th>
+                    <th class="py-2 px-2 w-24 text-right">Total ($)</th>
+                    <th class="py-2 px-2 w-8"></th>
+                  </tr>
+                </thead>
+                <tbody id="modal-line-items-body" class="divide-y divide-slate-800/60">
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-6 py-4 border-t border-slate-800 bg-slate-950 flex items-center justify-between">
+        <button onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold transition">
+          Cancel
+        </button>
+        <div class="flex items-center space-x-3">
+          <button onclick="saveAndRecheck()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 rounded-lg text-xs font-semibold transition flex items-center space-x-2">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+            <span>Save & Re-Check Rules</span>
+          </button>
+          <button onclick="approveCurrentDoc()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold transition shadow-lg shadow-emerald-600/20 flex items-center space-x-2">
+            <i data-lucide="check" class="w-4 h-4"></i>
+            <span>Approve & Validate</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    let allDocuments = [];
+    let currentFilter = 'ALL';
+    let currentDoc = null;
+
+    // Load initial data
+    document.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+      fetchMetrics();
+      fetchDocuments();
+    });
+
+    async function fetchMetrics() {
+      try {
+        const res = await fetch("/api/metrics");
+        const data = await res.json();
+        document.getElementById("kpi-pending").innerText = data.pending_review;
+        document.getElementById("kpi-flagged").innerText = data.flagged_discrepancies;
+        document.getElementById("kpi-volume").innerText = "$" + data.total_reconciled_volume.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById("kpi-total-docs").innerText = `${data.total_documents} total documents`;
+        document.getElementById("kpi-saved").innerText = `${data.est_hours_saved} hrs`;
+      } catch (err) {
+        console.error("Error fetching metrics:", err);
+      }
+    }
+
+    async function fetchDocuments() {
+      try {
+        const res = await fetch("/api/documents");
+        allDocuments = await res.json();
+        renderDocuments();
+      } catch (err) {
+        console.error("Error fetching documents:", err);
+      }
+    }
+
+    function setFilter(filter) {
+      currentFilter = filter;
+      document.querySelectorAll(".filter-btn").forEach(btn => {
+        btn.classList.remove("bg-indigo-600", "text-white");
+        btn.classList.add("bg-slate-800", "text-slate-400");
+      });
+      const activeBtn = document.getElementById(`filter-${filter}`);
+      if (activeBtn) {
+        activeBtn.classList.remove("bg-slate-800", "text-slate-400");
+        activeBtn.classList.add("bg-indigo-600", "text-white");
+      }
+      renderDocuments();
+    }
+
+    function renderDocuments() {
+      const search = document.getElementById("search-input").value.toLowerCase();
+      const tbody = document.getElementById("document-table-body");
+      const emptyState = document.getElementById("empty-state");
+
+      const filtered = allDocuments.filter(doc => {
+        const matchesFilter = (currentFilter === 'ALL' || doc.status === currentFilter);
+        const matchesSearch = !search || 
+          (doc.vendor_name && doc.vendor_name.toLowerCase().includes(search)) ||
+          (doc.document_number && doc.document_number.toLowerCase().includes(search)) ||
+          (doc.filename && doc.filename.toLowerCase().includes(search));
+        return matchesFilter && matchesSearch;
+      });
+
+      tbody.innerHTML = "";
+
+      if (filtered.length === 0) {
+        emptyState.classList.remove("hidden");
+      } else {
+        emptyState.classList.add("hidden");
+        filtered.forEach(doc => {
+          const tr = document.createElement("tr");
+          tr.className = "hover:bg-slate-800/40 transition group";
+
+          // Status Badge
+          let statusBadge = '';
+          if (doc.status === 'APPROVED') {
+            statusBadge = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"><i data-lucide="check" class="w-3 h-3 mr-1"></i> Verified</span>';
+          } else if (doc.status === 'FLAGGED') {
+            statusBadge = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20"><i data-lucide="alert-triangle" class="w-3 h-3 mr-1"></i> Flagged (${doc.validation_flags.length})</span>`;
+          } else if (doc.status === 'EXPORTED') {
+            statusBadge = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20"><i data-lucide="check-circle-2" class="w-3 h-3 mr-1"></i> Exported</span>';
+          } else {
+            statusBadge = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20"><i data-lucide="clock" class="w-3 h-3 mr-1"></i> Review Needed</span>';
+          }
+
+          const itemsCount = doc.line_items ? doc.line_items.length : 0;
+
+          tr.innerHTML = `
+            <td class="py-4 px-6">
+              <div class="font-bold text-white text-sm">${doc.vendor_name || "Unknown Vendor"}</div>
+              <div class="text-slate-400 text-xs flex items-center space-x-2 mt-0.5">
+                <span>${doc.filename}</span>
+                <span class="text-slate-600">•</span>
+                <span class="text-slate-500 uppercase">${doc.file_type}</span>
+              </div>
+            </td>
+            <td class="py-4 px-4">
+              <div class="font-mono font-medium text-slate-200">${doc.document_number || "N/A"}</div>
+              <div class="text-slate-400 text-xs">${doc.document_date || "Unknown date"}</div>
+            </td>
+            <td class="py-4 px-4 text-slate-300">
+              <span class="font-semibold">${itemsCount}</span> line items
+            </td>
+            <td class="py-4 px-4 font-mono font-bold text-slate-100 text-sm">
+              $${doc.total_amount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+            </td>
+            <td class="py-4 px-4">
+              ${statusBadge}
+            </td>
+            <td class="py-4 px-6 text-right space-x-2">
+              <button onclick="openModal(${doc.id})" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-semibold transition">
+                Inspect
+              </button>
+              ${doc.status !== 'APPROVED' && doc.status !== 'EXPORTED' ? `
+                <button onclick="quickApprove(${doc.id})" class="px-3 py-1.5 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 rounded-lg text-xs font-semibold transition">
+                  Approve
+                </button>
+              ` : ''}
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+      lucide.createIcons();
+    }
+
+    async function handleFileSelect(e) {
+      const files = e.target.files;
+      if (files.length > 0) {
+        await uploadFiles(files);
+      }
+    }
+
+    async function handleDrop(e) {
+      e.preventDefault();
+      document.getElementById("drop-zone").classList.remove('border-indigo-400', 'bg-slate-800/40');
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        await uploadFiles(files);
+      }
+    }
+
+    async function uploadFiles(files) {
+      const formData = new FormData();
+      for (let i = 0; i < files.length; i++) {
+        formData.append("files", files[i]);
+      }
+      try {
+        const res = await fetch("/api/documents/upload", {
+          method: "POST",
+          body: formData
+        });
+        if (res.ok) {
+          await fetchMetrics();
+          await fetchDocuments();
+        }
+      } catch (err) {
+        console.error("Upload failed:", err);
+      }
+    }
+
+    async function generateDemoData() {
+      try {
+        const res = await fetch("/api/demo/generate-and-ingest", { method: "POST" });
+        if (res.ok) {
+          await fetchMetrics();
+          await fetchDocuments();
+        }
+      } catch (err) {
+        console.error("Failed demo generation:", err);
+      }
+    }
+
+    async function quickApprove(docId) {
+      try {
+        const res = await fetch(`/api/documents/${docId}/approve`, { method: "POST" });
+        if (res.ok) {
+          await fetchMetrics();
+          await fetchDocuments();
+        }
+      } catch (err) {
+        console.error("Failed approval:", err);
+      }
+    }
+
+    function openModal(docId) {
+      currentDoc = allDocuments.find(d => d.id === docId);
+      if (!currentDoc) return;
+
+      document.getElementById("modal-doc-title").innerText = `${currentDoc.vendor_name || 'Document'} (#${currentDoc.document_number || 'N/A'})`;
+      document.getElementById("modal-filename").innerText = currentDoc.filename;
+      document.getElementById("modal-raw-text").innerText = currentDoc.raw_text || "No raw text extracted.";
+      document.getElementById("modal-confidence").innerText = `Confidence: ${(currentDoc.confidence_score * 100).toFixed(0)}%`;
+
+      document.getElementById("edit-vendor").value = currentDoc.vendor_name || "";
+      document.getElementById("edit-docnum").value = currentDoc.document_number || "";
+      document.getElementById("edit-date").value = currentDoc.document_date || "";
+      document.getElementById("edit-total").value = currentDoc.total_amount || 0.0;
+
+      // Render Validation Flags
+      const flagsContainer = document.getElementById("modal-flags-container");
+      flagsContainer.innerHTML = "";
+      if (currentDoc.validation_flags && currentDoc.validation_flags.length > 0) {
+        currentDoc.validation_flags.forEach(flag => {
+          const flagDiv = document.createElement("div");
+          const isErr = flag.severity === 'ERROR';
+          const isWarn = flag.severity === 'WARNING';
+          const bg = isErr ? 'bg-rose-500/10 border-rose-500/30 text-rose-300' : (isWarn ? 'bg-amber-500/10 border-amber-500/30 text-amber-300' : 'bg-blue-500/10 border-blue-500/30 text-blue-300');
+          flagDiv.className = `p-3 rounded-xl border text-xs flex items-start space-x-2.5 ${bg}`;
+          flagDiv.innerHTML = `
+            <i data-lucide="${isErr ? 'alert-triangle' : 'info'}" class="w-4 h-4 mt-0.5 shrink-0"></i>
+            <div>
+              <span class="font-bold uppercase tracking-wider text-[10px] block">${flag.code}</span>
+              <span>${flag.message}</span>
+            </div>
+          `;
+          flagsContainer.appendChild(flagDiv);
+        });
+      } else {
+        flagsContainer.innerHTML = `
+          <div class="p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 text-xs flex items-center space-x-2">
+            <i data-lucide="check-circle" class="w-4 h-4"></i>
+            <span>All deterministic checks passed: math verified, no duplicate found.</span>
+          </div>
+        `;
+      }
+
+      // Render Line Items
+      renderModalLineItems();
+
+      document.getElementById("review-modal").classList.remove("hidden");
+      lucide.createIcons();
+    }
+
+    function renderModalLineItems() {
+      const tbody = document.getElementById("modal-line-items-body");
+      tbody.innerHTML = "";
+      (currentDoc.line_items || []).forEach((item, idx) => {
+        const tr = document.createElement("tr");
+        tr.className = "hover:bg-slate-900";
+        tr.innerHTML = `
+          <td class="py-2 px-3">
+            <input type="text" value="${item.description}" class="item-desc w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white">
+          </td>
+          <td class="py-2 px-2">
+            <input type="number" step="0.5" value="${item.quantity}" oninput="recalcItemRow(this)" class="item-qty w-full text-right bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-xs text-white">
+          </td>
+          <td class="py-2 px-2">
+            <input type="number" step="0.01" value="${item.unit_price}" oninput="recalcItemRow(this)" class="item-unit w-full text-right bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-xs text-white">
+          </td>
+          <td class="py-2 px-2">
+            <input type="number" step="0.01" value="${item.total_price}" class="item-tot w-full text-right bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-xs font-mono font-bold text-slate-200">
+          </td>
+          <td class="py-2 px-2 text-right">
+            <button onclick="deleteItemRow(this)" class="text-slate-500 hover:text-rose-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      lucide.createIcons();
+    }
+
+    function recalcItemRow(elem) {
+      const tr = elem.closest("tr");
+      const qty = parseFloat(tr.querySelector(".item-qty").value) || 0;
+      const unit = parseFloat(tr.querySelector(".item-unit").value) || 0;
+      tr.querySelector(".item-tot").value = (qty * unit).toFixed(2);
+    }
+
+    function addLineItemRow() {
+      const tbody = document.getElementById("modal-line-items-body");
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td class="py-2 px-3"><input type="text" value="New Service Item" class="item-desc w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white"></td>
+        <td class="py-2 px-2"><input type="number" step="1" value="1" oninput="recalcItemRow(this)" class="item-qty w-full text-right bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-xs text-white"></td>
+        <td class="py-2 px-2"><input type="number" step="0.01" value="0.00" oninput="recalcItemRow(this)" class="item-unit w-full text-right bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-xs text-white"></td>
+        <td class="py-2 px-2"><input type="number" step="0.01" value="0.00" class="item-tot w-full text-right bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-xs font-bold text-slate-200"></td>
+        <td class="py-2 px-2 text-right"><button onclick="deleteItemRow(this)" class="text-slate-500 hover:text-rose-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td>
+      `;
+      tbody.appendChild(tr);
+      lucide.createIcons();
+    }
+
+    function deleteItemRow(elem) {
+      elem.closest("tr").remove();
+    }
+
+    function closeModal() {
+      document.getElementById("review-modal").classList.add("hidden");
+    }
+
+    async function saveAndRecheck() {
+      if (!currentDoc) return;
+      const rows = document.querySelectorAll("#modal-line-items-body tr");
+      const lineItems = [];
+      let calculatedSubtotal = 0;
+      
+      rows.forEach(r => {
+        const desc = r.querySelector(".item-desc").value;
+        const qty = parseFloat(r.querySelector(".item-qty").value) || 1;
+        const unit = parseFloat(r.querySelector(".item-unit").value) || 0;
+        const tot = parseFloat(r.querySelector(".item-tot").value) || (qty * unit);
+        calculatedSubtotal += tot;
+        lineItems.push({ description: desc, quantity: qty, unit_price: unit, total_price: tot });
+      });
+
+      const updatedPayload = {
+        vendor_name: document.getElementById("edit-vendor").value,
+        document_number: document.getElementById("edit-docnum").value,
+        document_date: document.getElementById("edit-date").value,
+        subtotal: parseFloat(calculatedSubtotal.toFixed(2)),
+        total_amount: parseFloat(document.getElementById("edit-total").value) || calculatedSubtotal,
+        line_items: lineItems
+      };
+
+      try {
+        const res = await fetch(`/api/documents/${currentDoc.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updatedPayload)
+        });
+        if (res.ok) {
+          const updatedDoc = await res.json();
+          openModal(updatedDoc.id);
+          await fetchMetrics();
+          await fetchDocuments();
+        }
+      } catch (err) {
+        console.error("Save error:", err);
+      }
+    }
+
+    async function approveCurrentDoc() {
+      if (!currentDoc) return;
+      await quickApprove(currentDoc.id);
+      closeModal();
+    }
+  </script>
+</body>
+</html>
