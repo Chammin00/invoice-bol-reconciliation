@@ -9,43 +9,93 @@
   <!-- Lucide Icons CDN -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="cosmic-background.js"></script>
+  <link rel="stylesheet" href="high-gloss-lacquer.css">
+  <script src="high-gloss-lacquer.js"></script>
   <style>
+    :root {
+      /* High-Gloss Lacquer Brand Colors — Navy Blue (#050B18 to #0E1D3A) & Tan (#C5A059 to #DFBA73) */
+      --c-navy: #0E1D3A;
+      --c-navy-deep: #050B18;
+      --c-tan: #C5A059;
+      --c-tan-bright: #DFBA73;
+      --c-tan-glow: rgba(197, 160, 89, 0.3);
+    }
+    body {
+      background-color: #050B18 !important;
+    }
     [v-cloak] { display: none; }
     .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-    .custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #050B18; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(197, 160, 89, 0.3); border-radius: 4px; }
+    
+    /* High-Gloss Lacquer Tiles & Cards in Navy & Tan */
+    .bg-slate-900, .bg-slate-900\/50, .bg-slate-900\/80 {
+      background: linear-gradient(145deg, #0E1D3A 0%, rgba(14, 29, 58, 0.95) 55%, rgba(5, 11, 24, 0.98) 100%) !important;
+      border: 1px solid rgba(197, 160, 89, 0.28) !important;
+      border-top: 1px solid rgba(255, 255, 255, 0.4) !important;
+      backdrop-filter: blur(16px) !important;
+      box-shadow: 0 8px 32px -4px rgba(2, 6, 18, 0.8), 0 2px 8px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.35) !important;
+    }
+    .border-slate-800 {
+      border-color: rgba(197, 160, 89, 0.28) !important;
+    }
   </style>
-</head>
-<body class="h-full flex flex-col font-sans antialiased bg-slate-950/75">
 
-  <!-- Top Navigation -->
-  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-30 px-6 py-4">
-    <div class="max-w-7xl mx-auto flex items-center justify-between">
-      <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-blue-500 to-emerald-400 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+  <!-- Antigravity Baseline Integration -->
+  <script src="mcp-baseline.js"></script>
+
+  <!-- Antigravity Baseline Integration -->
+  <link rel="stylesheet" href="aws-enterprise-baseline.css">
+  <script src="aws-enterprise-baseline.js"></script>
+</head>
+<body class="app-shell min-h-screen flex flex-row font-sans antialiased bg-slate-950/75">
+
+  <!-- ==================== LEFT NAVIGATION PANEL ==================== -->
+  <aside class="left-panel" style="width: 280px; min-width: 280px; height: 100vh; position: sticky; top: 0; display: flex; flex-direction: column; justify-content: space-between; padding: 1.5rem 1rem; z-index: 100; overflow-y: auto;">
+    <div>
+      <div class="flex items-center space-x-3 pb-5 mb-5 border-b border-slate-800">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-blue-500 to-emerald-400 flex items-center justify-center shadow-lg shadow-indigo-500/20 flex-shrink-0">
           <i data-lucide="cpu" class="w-6 h-6 text-white"></i>
         </div>
         <div>
-          <div class="flex items-center space-x-2">
-            <span class="font-bold text-lg text-white tracking-tight">Antigravity Operations</span>
-            <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">B2B Core v1.0</span>
-          </div>
-          <p class="text-xs text-slate-400">Autonomous Ingestion, Math Reconciliation & Human-in-the-Loop Pipeline</p>
+          <span class="font-bold text-base text-white tracking-tight block">Antigravity Operations</span>
+          <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">B2B Core v1.0</span>
         </div>
       </div>
 
-      <div class="flex items-center space-x-3">
-        <button onclick="generateDemoData()" class="flex items-center space-x-2 px-3.5 py-2 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 rounded-lg text-xs font-semibold transition shadow-sm">
+      <div class="sidebar-section-title" style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #DFBA73; margin-bottom: 0.5rem;">PIPELINE ACTIONS</div>
+      <div class="flex flex-col space-y-2 mb-6">
+        <button onclick="generateDemoData()" class="flex items-center space-x-2 px-3.5 py-2.5 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 rounded-lg text-xs font-semibold transition shadow-sm w-full">
           <i data-lucide="sparkles" class="w-4 h-4"></i>
           <span>Load Live Sales Demo</span>
         </button>
-        <a href="/api/export/csv" class="flex items-center space-x-2 px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-semibold transition">
+        <button onclick="exportReconciledCsv()" class="flex items-center space-x-2 px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-semibold transition w-full text-left">
           <i data-lucide="download" class="w-4 h-4"></i>
           <span>Export Reconciled CSV</span>
-        </a>
+        </button>
       </div>
+
+      <div class="sidebar-section-title" style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #DFBA73; margin-bottom: 0.5rem;">ECOSYSTEM</div>
+      <nav class="flex flex-col space-y-1">
+        <a href="../../deploy/index.html" class="flex items-center space-x-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-lg text-xs font-medium transition">
+          <span>🚀</span>
+          <span>Deploy Hub</span>
+        </a>
+        <a href="../../Choogle/hub.html" class="flex items-center space-x-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-lg text-xs font-medium transition">
+          <span>⚡</span>
+          <span>Choogle Hub</span>
+        </a>
+        <a href="../../deploy/lacquer.html" class="flex items-center space-x-2 px-3 py-2 text-amber-300 hover:text-white hover:bg-slate-800/60 rounded-lg text-xs font-medium transition">
+          <span>✨</span>
+          <span>Lacquer Studio</span>
+        </a>
+      </nav>
     </div>
-  </header>
+
+    <div class="pt-4 border-t border-slate-800 text-center">
+      <p class="text-xs text-slate-500">Autonomous Ingestion & Math Pipeline</p>
+    </div>
+  </aside>
 
   <!-- Main Content -->
   <main class="flex-1 max-w-7xl w-full mx-auto px-6 py-8 space-y-8">
@@ -633,6 +683,31 @@
       if (!currentDoc) return;
       await quickApprove(currentDoc.id);
       closeModal();
+    }
+
+    function exportReconciledCsv() {
+      if (window.location.protocol.startsWith('http') && window.location.port) {
+        window.location.href = '/api/export/csv';
+        return;
+      }
+      // Offline fallback: generate CSV from local in-memory documents
+      const docs = allDocuments.filter(d => d.validation_status === 'APPROVED' || d.validation_status === 'EXPORTED');
+      if (!docs.length) {
+        alert('No approved documents ready for export yet. Try loading the demo data and approving documents!');
+        return;
+      }
+      let csv = 'ID,Vendor,Document_Number,Date,Total,Status\n';
+      docs.forEach(d => {
+        csv += `"${d.id}","${d.vendor_name || ''}","${d.document_number || ''}","${d.document_date || ''}","${d.total_amount || 0}","${d.validation_status}"\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', 'reconciled_operational_docs.csv');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
   </script>
 </body>
