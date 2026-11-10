@@ -91,6 +91,9 @@
         if (data.role && document.getElementById('insp-role')) {
           document.getElementById('insp-role').textContent = data.role;
         }
+        if (data.failureRecovery && document.getElementById('insp-recovery')) {
+          document.getElementById('insp-recovery').textContent = data.failureRecovery;
+        }
         if (data.specs && document.getElementById('insp-params')) {
           const tbody = document.getElementById('insp-params');
           tbody.innerHTML = '';

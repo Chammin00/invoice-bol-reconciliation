@@ -22,7 +22,7 @@
         name: "Game Capture MCP",
         category: "Media & Streaming",
         color: "#EC4899",
-        icon: "🎥",
+        icon: "GC",
         status: "Active",
         toolsCount: 14,
         description: "OBS Studio 31, NVIDIA ShadowPlay AV1 & Xbox Game Bar DVR orchestration with real-time frame telemetry.",
@@ -33,7 +33,7 @@
         name: "Game Studio MCP",
         category: "Game Engines & ROMs",
         color: "#F97316",
-        icon: "🎮",
+        icon: "GS",
         status: "Active",
         toolsCount: 18,
         description: "Unreal Engine 5.8 C++, Unity 6, Godot 4 automation, live PIE control, and binary ROM header/IPS modding.",
@@ -44,7 +44,7 @@
         name: "GitHub Developer MCP",
         category: "CI/CD & Source",
         color: "#38BDF8",
-        icon: "🐙",
+        icon: "GH",
         status: "Active",
         toolsCount: 8,
         description: "Full git tree manipulation, repository commits, branch workflows, and PR reviews via GitHub REST/GraphQL.",
@@ -55,7 +55,7 @@
         name: "Puppeteer Web Browser MCP",
         category: "Headless Web Automation",
         color: "#10B981",
-        icon: "🌐",
+        icon: "PW",
         status: "Active",
         toolsCount: 7,
         description: "Chromium automation for dynamic SPA rendering, DOM scraping, form entry, and visual layout evaluation.",
@@ -66,7 +66,7 @@
         name: "Google Drive Filesystem MCP",
         category: "Filesystem & Workspace",
         color: "#EAB308",
-        icon: "📁",
+        icon: "GD",
         status: "Active",
         toolsCount: 7,
         description: "Deep workspace filesystem bridge to G:\\My Drive with transactional read/write, tree indexing, and file ops.",
@@ -77,7 +77,7 @@
         name: "Ollama Local AI MCP",
         category: "Local Intelligence Hub",
         color: "#8B5CF6",
-        icon: "🦙",
+        icon: "OL",
         status: "Active",
         toolsCount: 4,
         description: "Sub-millisecond local LLM inference running Qwen 2.5 Coder, Llama 3, and specialized task Modelfiles.",
@@ -88,7 +88,7 @@
         name: "Google AI Studio MCP",
         category: "Frontier Cloud Intelligence",
         color: "#6366F1",
-        icon: "✨",
+        icon: "AI",
         status: "Active",
         toolsCount: 3,
         description: "Multi-modal Gemini 2.5 Flash & Pro reasoning models with ultra-deep 2M+ token contexts.",
@@ -132,14 +132,14 @@
       hud.innerHTML = `
         <div class="p-4 border-b border-[#C5A059]/20 flex items-center justify-between bg-gradient-to-r from-[#0E1D3A] to-[#050B18]">
           <div class="flex items-center gap-2">
-            <span class="text-xl">⚡</span>
+            <span class="text-xs font-mono font-bold px-2 py-1 rounded bg-[#C5A059]/20 text-[#DFBA73] border border-[#C5A059]/40">MCP</span>
             <div>
               <div class="text-xs uppercase tracking-wider text-[#C5A059] font-bold">Baseline MCP Hub</div>
               <div class="text-sm font-semibold text-white">Configured Servers (7)</div>
             </div>
           </div>
           <button id="close-mcp-hud-btn" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors">
-            ✕
+            X
           </button>
         </div>
         <div class="flex-1 overflow-y-auto p-4 space-y-3">

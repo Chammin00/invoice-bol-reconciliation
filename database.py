@@ -65,7 +65,7 @@ class AuditLog(Base):
     document_id = Column(Integer, ForeignKey("documents.id"))
     action = Column(String) # e.g. UPLOADED, FLAGGED, EDITED, APPROVED, EXPORTED
     details = Column(Text, nullable=True)
-    timestamp = Column(DateTime, default=datetime.datetime.utcnow)
+    timestamp = Column(DateTime, default=utc_now)
 
     document = relationship("Document", back_populates="audit_logs")
 

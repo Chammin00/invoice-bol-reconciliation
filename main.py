@@ -63,6 +63,19 @@ def get_metrics(db: Session = Depends(get_db)):
     # Estimate: ~15 minutes (0.25h) saved per processed document
     est_hours = round(total_docs * 0.25, 1)
 
+    # Calculate overbilling caught from math mismatches
+    overbilling = 0.0
+    for d in docs:
+        expected = round((d.subtotal or 0.0) + (d.tax_amount or 0.0), 2)
+        if d.total_amount and expected > 0 and d.total_amount > expected:
+            overbilling += (d.total_amount - expected)
+        elif d.line_items:
+            li_sum = sum(li.total_price for li in d.line_items)
+            if d.subtotal and d.subtotal > li_sum:
+                overbilling += (d.subtotal - li_sum)
+
+    avg_conf = round(sum(d.confidence_score or 1.0 for d in docs) / len(docs), 3) if docs else 1.0
+
     return schemas.DashboardMetrics(
         total_documents=total_docs,
         pending_review=pending,
@@ -70,7 +83,9 @@ def get_metrics(db: Session = Depends(get_db)):
         approved_count=approved,
         exported_count=exported,
         total_reconciled_volume=round(total_volume, 2),
-        est_hours_saved=est_hours
+        est_hours_saved=est_hours,
+        total_overbilling_caught=round(overbilling, 2),
+        avg_confidence_score=avg_conf
     )
 
 
@@ -252,6 +267,7 @@ def generate_and_ingest_samples(db: Session = Depends(get_db)):
         "Apex_HVAC_Supply_INV-8821.pdf",
         "NorthStar_Logistics_BOL-4091_MATH_ERROR.pdf",
         "Metro_Dental_Supply_INV-9904_HIGH_VALUE.pdf",
+        "Summit_Property_Repair_INV-3318_ROW_ERROR.pdf",
         "Dispatch_Batch_0907.csv"
     ]
     
@@ -386,6 +402,126 @@ async def export_webhook(payload: schemas.BatchExportRequest, db: Session = Depe
             return {"status": "SUCCESS", "status_code": resp.status_code, "count": len(docs)}
     except Exception as e:
         return {"status": "FAILED_OUTBOUND_CALL", "error": str(e), "queued_count": len(docs)}
+
+
+@app.post("/api/documents/batch-approve")
+def batch_approve_documents(db: Session = Depends(get_db)):
+    """Approves all PENDING_REVIEW documents that have zero ERROR flags."""
+    docs = db.query(Document).filter(Document.status == "PENDING_REVIEW").all()
+    approved_ids = []
+    for doc in docs:
+        flags = doc.validation_flags or []
+        has_err = any(f.get("severity") == "ERROR" for f in flags)
+        if not has_err:
+            doc.status = "APPROVED"
+            db.add(AuditLog(
+                document_id=doc.id,
+                action="BATCH_APPROVED",
+                details="Auto-approved via 1-click batch approval (0 error flags)."
+            ))
+            approved_ids.append(doc.id)
+    db.commit()
+    return {"approved_count": len(approved_ids), "approved_ids": approved_ids}
+
+
+@app.post("/api/roi/calculate", response_model=schemas.RoiCalculationResponse)
+def calculate_roi(payload: schemas.RoiCalculationRequest):
+    monthly_hours = round((payload.monthly_invoice_volume * payload.minutes_per_manual_doc) / 60.0, 1)
+    labor_savings = round(monthly_hours * payload.hourly_staff_rate, 2)
+    monthly_spend = payload.monthly_invoice_volume * payload.avg_invoice_value
+    overbilling_prevented = round(monthly_spend * (payload.overbilling_error_rate_pct / 100.0) * 0.65, 2)
+    gross_monthly = round(labor_savings + overbilling_prevented, 2)
+    net_monthly = round(gross_monthly - payload.monthly_retainer_fee, 2)
+    annual_net = round((net_monthly * 12) - payload.setup_fee, 2)
+    daily_net = max(net_monthly / 30.0, 1.0)
+    payback_days = max(1, int(round(payload.setup_fee / daily_net)))
+    total_annual_cost = payload.setup_fee + (payload.monthly_retainer_fee * 12)
+    roi_mult = round((gross_monthly * 12) / max(total_annual_cost, 1.0), 1)
+
+    return schemas.RoiCalculationResponse(
+        monthly_hours_saved=monthly_hours,
+        monthly_labor_savings=labor_savings,
+        monthly_overbilling_prevented=overbilling_prevented,
+        gross_monthly_value=gross_monthly,
+        net_monthly_profit=net_monthly,
+        annual_net_roi=annual_net,
+        payback_period_days=payback_days,
+        roi_multiple=roi_mult
+    )
+
+
+@app.post("/api/proposal/generate", response_model=schemas.ProposalGeneratorResponse)
+def generate_client_proposal(payload: schemas.ProposalGeneratorRequest):
+    roi_req = schemas.RoiCalculationRequest(
+        monthly_invoice_volume=payload.monthly_volume,
+        avg_invoice_value=payload.avg_invoice_value,
+        hourly_staff_rate=payload.hourly_wage,
+        minutes_per_manual_doc=15.0,
+        overbilling_error_rate_pct=2.1,
+        monthly_retainer_fee=payload.monthly_retainer,
+        setup_fee=payload.setup_fee
+    )
+    roi = calculate_roi(roi_req)
+    now_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+
+    exec_summary = (
+        f"Deterministic B2B Document Ingestion & Math Reconciliation deployment for {payload.client_company} "
+        f"({payload.industry_niche}). Processes {payload.monthly_volume:,} monthly documents, eliminating "
+        f"{roi.monthly_hours_saved} hrs/mo of manual keystroke entry and catching an estimated "
+        f"${roi.monthly_overbilling_prevented:,.2f}/mo in vendor billing discrepancies before ERP commit to {payload.target_erp}."
+    )
+
+    sow_md = f"""# STATEMENT OF WORK (SOW): AUTONOMOUS RECONCILIATION PIPELINE
+**Prepared For:** {payload.client_company} ({payload.contact_name})
+**Industry Vertical:** {payload.industry_niche}
+**Target Accounting / ERP Sink:** {payload.target_erp}
+**Date Issued:** {now_str}
+
+---
+
+## 1. ARCHITECTURE & SCOPE OF DEPLOYMENT
+1. **Multi-Format Ingestion Endpoint**: Dedicated FastAPI listener accepting PDF invoices, Bills of Lading (BOL), EDI/CSV dispatch feeds, and raw work orders.
+2. **Deterministic Validation Engine**:
+   - Line-item row extension checks (`Quantity × Unit Price = Row Total` within `$0.02` tolerance).
+   - Subtotal + Tax vs. Grand Total verification.
+   - Historical SQLite/PostgreSQL duplicate invoice blocking (`Vendor + Document #` composite index).
+   - High-Value managerial sign-off routing (`>= $5,000.00`).
+3. **Human-in-the-Loop (HITL) Exception Console**: Side-by-side raw stream vs. structured table editor with 1-click approval and ERP CSV/Webhook sync.
+
+## 2. FINANCIAL ROI PROJECTION
+| Metric | Projected Value |
+| :--- | :--- |
+| **Monthly Document Volume** | {payload.monthly_volume:,} docs / month |
+| **Manual Labor Hours Eliminated** | {roi.monthly_hours_saved:,.1f} hrs / month |
+| **Monthly Payroll Savings** | ${roi.monthly_labor_savings:,.2f} / month |
+| **Vendor Overbilling Prevented (Est.)** | ${roi.monthly_overbilling_prevented:,.2f} / month |
+| **Net Year-1 Bottom-Line Impact** | **${roi.annual_net_roi:,.2f} / year ({roi.roi_multiple}x ROI)** |
+| **Capital Payback Window** | **{roi.payback_period_days} Days** |
+
+## 3. COMMERCIAL TERMS
+- **Turnkey Implementation & Schema Calibration**: `${payload.setup_fee:,.2f}` (One-Time)
+- **Managed Infrastructure & Rule Retainer**: `${payload.monthly_retainer:,.2f} / month`
+"""
+
+    return schemas.ProposalGeneratorResponse(
+        client_company=payload.client_company,
+        generated_at=now_str,
+        executive_summary=exec_summary,
+        roi_breakdown=roi,
+        statement_of_work_markdown=sow_md,
+        sla_guarantees=[
+            "< 250ms deterministic math & duplicate validation latency per document",
+            "100% isolated single-tenant SQLite/PostgreSQL ledger (Zero public LLM data training)",
+            "24-hour SLA on vendor template parser rule updates",
+            "99.95% pipeline uptime with automated CSV & Webhook retry queues"
+        ]
+    )
+
+
+@app.get("/api/audit-logs", response_model=List[schemas.AuditLogResponse])
+def list_recent_audit_logs(limit: int = Query(30, ge=1, le=200), db: Session = Depends(get_db)):
+    return db.query(AuditLog).order_by(AuditLog.timestamp.desc()).limit(limit).all()
+
 
 
 # Serve static frontend files

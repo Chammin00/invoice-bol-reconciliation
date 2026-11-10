@@ -31,19 +31,26 @@ python generate_demo_data.py
    - Ingests PDFs, CSVs, and plain text documents.
    - Extracts structured headers (Vendor, Invoice #, Date) and tabular line items.
 
-2. **Deterministic Business Rules Engine**:
-   - **Math Verification**: Sum of line items vs. Subtotal vs. Grand Total.
-   - **Duplicate Detection**: Flags already processed invoices for the same vendor.
-   - **High-Value Alerts**: Automatically flags transactions $\ge$ \$5,000 for management sign-off.
+2. **Deterministic Business Rules Engine (6 Core Invariants)**:
+   - **Row Extension Math (`ROW_EXTENSION_MISMATCH`)**: Verifies `Quantity × Unit Price == Row Total` on every line item.
+   - **Line-Item Subtotal Verification (`LINE_ITEM_SUM_MISMATCH`)**: Sum of line items vs. stated Subtotal.
+   - **Tax & Grand Total Verification (`TAX_TOTAL_MISMATCH` & `TAX_RATE_ANOMALY`)**: Verifies `Subtotal + Tax == Grand Total` and flags effective tax rates $> 15\%$.
+   - **Duplicate Detection (`DUPLICATE_DOCUMENT`)**: Blocks already processed invoices for the same `Vendor + Document #`.
+   - **High-Value Alerts (`HIGH_VALUE_THRESHOLD`)**: Automatically flags transactions $\ge$ \$5,000 for management sign-off.
 
-3. **Human-in-the-Loop (HITL) Dashboard**:
-   - Real-time KPI counters (Labor Time Saved, Flagged Anomalies, Total Volume).
-   - Side-by-side inspection view with live line-item editing and re-validation.
-   - Instant 1-click batch approval.
+3. **3D Non-Photorealistic (NPR) Pipeline Topology & Packet Simulator**:
+   - Interactive Three.js WebGL 3D scene using custom cel/toon shaders, procedural hand-drawn cross-hatching textures, and inverted-hull ink silhouette outlines (zero sterile CGI plastic sheen).
+   - Step-by-step packet and discrepancy simulator across 4 B2B operational scenarios with synchronized 3D node inspection and Web Speech API audio narration.
 
-4. **Export & ERP Sync**:
-   - One-click CSV and JSON exports formatted for QuickBooks / Sage / ERPs.
-   - Outbound webhook integration for automated Zapier or Make pipelines.
+4. **Client Acquisition ROI & Statement of Work (SOW) Studio**:
+   - Live financial calculator (`POST /api/roi/calculate`) and custom Markdown Statement of Work generator (`POST /api/proposal/generate`) to close \$2,500 setup + \$350/mo retainer deals on screen-share calls.
+
+5. **Forensic Reconciliation Audit Drill Engine**:
+   - Gamified 6-challenge architectural verification deck with smart fuzzy matching, hints, radial SVG mastery ring, and audio narration.
+
+6. **Enterprise Fullscreen Layout ($100\text{vw} \times 100\text{vh}$) & ERP Sync**:
+   - GitHub Primer matte dark console with collapsible left sidebar (`280px` to `64px`), `Ctrl+K` command search, and 3-way dockable architecture inspector (`Left`, `Center`, `Right`).
+   - One-click batch approval (`POST /api/documents/batch-approve`), QuickBooks CSV export, and async outbound webhook dispatch (`POST /api/export/webhook`).
 
 ---
 

@@ -134,6 +134,23 @@ def generate_all_samples():
         writer.writerow(["2026-09-06", "Emergency Plumbing Service Call", "1", "185.00", "185.00", "SRV-PLUMB"])
         writer.writerow(["2026-09-06", "Cast Iron Pipe Section Replacement", "2", "120.00", "240.00", "MAT-PIPE"])
         writer.writerow(["2026-09-06", "Master Technician Overtime Labor", "3.5", "95.00", "332.50", "LAB-OT"])
+
+    # 5. Property Management Contractor Invoice with Line-Item Row Extension Error
+    prop_error = os.path.join(SAMPLE_DIR, "Summit_Property_Repair_INV-3318_ROW_ERROR.pdf")
+    generate_pdf_invoice(
+        prop_error,
+        title="CONTRACTOR WORK ORDER INVOICE",
+        vendor="Summit Commercial Property Services LLC",
+        invoice_no="INV-3318",
+        date="2026-09-07",
+        items=[
+            {"desc": "Roof Membrane Flashing Repair (Bldg B)", "qty": 4, "unit": 175.00, "total": 900.00}, # 4 * 175 = 700, billed 900!
+            {"desc": "Commercial Gutter Hydro-Jet Cleaning", "qty": 2, "unit": 150.00, "total": 300.00}
+        ],
+        subtotal=1200.00,
+        tax=96.00,
+        total=1296.00
+    )
     
     print(f"Generated sample operational documents in {SAMPLE_DIR}")
 

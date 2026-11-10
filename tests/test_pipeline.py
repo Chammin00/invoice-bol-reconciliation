@@ -83,3 +83,52 @@ def test_csv_export():
     assert export_resp.status_code == 200
     assert "text/csv" in export_resp.headers["content-type"]
     assert "Document ID" in export_resp.text
+
+
+def test_row_extension_mismatch_and_batch_approve():
+    client.post("/api/demo/generate-and-ingest")
+    docs = client.get("/api/documents").json()
+    summit_doc = next((d for d in docs if "Summit" in (d.get("vendor_name") or "")), None)
+    assert summit_doc is not None
+    assert summit_doc["status"] == "FLAGGED"
+    codes = [f["code"] for f in summit_doc["validation_flags"]]
+    assert "ROW_EXTENSION_MISMATCH" in codes
+
+    # Test batch approve on non-error pending review docs
+    batch_resp = client.post("/api/documents/batch-approve")
+    assert batch_resp.status_code == 200
+    assert "approved_count" in batch_resp.json()
+
+
+def test_roi_and_proposal_studio_endpoints():
+    roi_resp = client.post("/api/roi/calculate", json={
+        "monthly_invoice_volume": 800,
+        "avg_invoice_value": 1500.0,
+        "hourly_staff_rate": 25.0,
+        "minutes_per_manual_doc": 15.0,
+        "overbilling_error_rate_pct": 2.0,
+        "monthly_retainer_fee": 400.0,
+        "setup_fee": 2500.0
+    })
+    assert roi_resp.status_code == 200
+    r_data = roi_resp.json()
+    assert r_data["monthly_hours_saved"] == 200.0
+    assert r_data["monthly_labor_savings"] == 5000.0
+    assert r_data["annual_net_roi"] > 0
+
+    prop_resp = client.post("/api/proposal/generate", json={
+        "client_company": "Apex Freight Corp",
+        "industry_niche": "Regional Freight & 3PL Logistics",
+        "contact_name": "VP Operations",
+        "monthly_volume": 800,
+        "avg_invoice_value": 1500.0,
+        "hourly_wage": 25.0,
+        "setup_fee": 2500.0,
+        "monthly_retainer": 400.0,
+        "target_erp": "NetSuite ERP"
+    })
+    assert prop_resp.status_code == 200
+    p_data = prop_resp.json()
+    assert p_data["client_company"] == "Apex Freight Corp"
+    assert "STATEMENT OF WORK" in p_data["statement_of_work_markdown"]
+

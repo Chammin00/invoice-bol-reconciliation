@@ -67,6 +67,30 @@ class ReconciliationEngine:
                 "message": f"Subtotal (${subtotal:,.2f}) + Tax (${tax:,.2f}) = ${calculated_total:,.2f}, which does not match Grand Total (${total:,.2f})."
             })
 
+        # 3b. Line Item Extended Math Check (qty * unit_price == total_price)
+        for idx, item in enumerate(line_items):
+            qty = float(item.quantity if hasattr(item, "quantity") else item.get("quantity", 1.0))
+            unit = float(item.unit_price if hasattr(item, "unit_price") else item.get("unit_price", 0.0))
+            tot = float(item.total_price if hasattr(item, "total_price") else item.get("total_price", 0.0))
+            desc = str(item.description if hasattr(item, "description") else item.get("description", f"Item #{idx+1}"))
+            expected_row_total = round(qty * unit, 2)
+            if tot > 0 and unit > 0 and abs(expected_row_total - tot) > 0.05:
+                flags.append({
+                    "code": "ROW_EXTENSION_MISMATCH",
+                    "severity": "ERROR",
+                    "message": f"Line item '{desc}' math mismatch: {qty} x ${unit:,.2f} = ${expected_row_total:,.2f}, but billed ${tot:,.2f}."
+                })
+
+        # 3c. Tax Rate Anomaly Check (> 15% effective sales tax)
+        if subtotal > 0 and tax > 0:
+            effective_tax_rate = (tax / subtotal) * 100.0
+            if effective_tax_rate > 15.0:
+                flags.append({
+                    "code": "TAX_RATE_ANOMALY",
+                    "severity": "WARNING",
+                    "message": f"Effective tax rate ({effective_tax_rate:.1f}%) exceeds standard 15.0% statutory ceiling."
+                })
+
         # 4. Duplicate Detection in Database
         if vendor and doc_num and not doc_num.startswith("DOC-"):
             query = db.query(database.Document).filter(
